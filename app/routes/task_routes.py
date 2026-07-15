@@ -2,15 +2,16 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
-from app.features.tasks.schemas.tasks_schemas import CreateTaskRequest, CreateTaskResponse, DeleteTaskRequest
+from features.tasks.schemas.tasks_schemas import CreateTaskRequest, CreateTaskResponse, DeleteTaskRequest
 from schemas.schemas import ErrorResponse
 from core.logger import logger
 from core.database import get_db
-from core import security
+from core import security, dependencies
 
 router = APIRouter(
     prefix="/api/v1/task",
     tags=["Task"],
+    dependencies=[Depends(dependencies.get_current_user)]
 )
 
 @router.post(

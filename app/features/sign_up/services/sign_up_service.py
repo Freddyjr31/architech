@@ -1,9 +1,10 @@
 
-from fastapi import HTTPException
+# from fastapi import HTTPException
+from features.sign_up.exeptions import EmailAlreadyExistsError, UserNameAlreadyExistsError
 from core.logger import logger
 from features.sign_up.schemas.sign_up_schemas import UserRegisterRequest
 from models.users_model import UserModel
-from core.security import create_access_token, hash_password
+from core.security import hash_password
 
 def register_user(user_data: UserRegisterRequest, db):
     """
@@ -18,13 +19,13 @@ def register_user(user_data: UserRegisterRequest, db):
         existing_user = db.query(UserModel).filter_by(username=user_data.username).first()
         if existing_user:
             logger.warning(f"Registro fallido: el username '{user_data.username}' ya existe.")
-            raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso.")
+            raise UserNameAlreadyExistsError(user_data.username)
         
         #* verifico si el correo electrónico ya existe en la base de datos
         existing_email = db.query(UserModel).filter_by(email=user_data.email).first()
         if existing_email:
             logger.warning(f"Registro fallido: el correo electrónico '{user_data.email}' ya está en uso.")
-            raise HTTPException(status_code=400, detail="El correo electrónico ya está en uso.")
+            raise EmailAlreadyExistsError(user_data.email)
         
         #* Lógica para registrar al usuario (aún no implementada)
         new_user = UserModel(
@@ -44,4 +45,3 @@ def register_user(user_data: UserRegisterRequest, db):
     except Exception as e:
         db.rollback()
         raise e
-    

@@ -10,4 +10,4 @@ services:
       - ./app:/app
     env_file: .env
     environment:
-      PYTHONUNBUFFERED: 1 # Para ver los logs en tiempo real
+      PYTHONUNBUFFERED: 1

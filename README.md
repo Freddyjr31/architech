@@ -28,7 +28,7 @@ API REST desarrollada con **FastAPI** para la gestión de proyectos y tareas con
 
 ```bash
 # Clonar el repositorio
-git clone <repo-url>
+git clone git@github.com:Freddyjr31/architech.git
 cd architech-system
 
 # Crear y activar entorno virtual

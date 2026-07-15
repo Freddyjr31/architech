@@ -5,10 +5,10 @@ from jose import jwt, JWTError  # cSpell:ignore jose
 from passlib.context import CryptContext
 from core.config import get_settings
 
-#* Obtiene la instancia de Settings
+#? Obtiene la instancia de Settings
 settings = get_settings()
 
-#* Contexto de hashing de contraseñas (usa bcrypt por defecto)
+#? Contexto de hashing de contraseñas (usa bcrypt por defecto)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:

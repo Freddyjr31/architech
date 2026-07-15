@@ -8,10 +8,9 @@ Para añadir un nuevo módulo:
 """
 
 from fastapi import FastAPI
-
 from .auth_routes import router as auth_router
 from .sign_up_routes import router as sign_up_router
-from .project_routes import router as proyect_router
+from .project_routes import router as project_router
 from .task_routes import router as task_router
 
 def register_all_routers(app: FastAPI) -> None:
@@ -19,10 +18,10 @@ def register_all_routers(app: FastAPI) -> None:
     Registra todos los routers de la aplicación en la instancia de FastAPI.
 
     Organización:
-      - Rutas base:   auth  (sin prefijo de versión, para compatibilidad)
+      - Rutas base:   auth | sign_up | project | task
     """
     
     app.include_router(auth_router)
     app.include_router(sign_up_router)
-    app.include_router(proyect_router)
+    app.include_router(project_router)
     app.include_router(task_router)

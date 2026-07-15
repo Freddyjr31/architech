@@ -9,7 +9,7 @@ class TasksModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     title_task = Column(String(100), unique=True, nullable=False)
     description = Column(String(255), nullable=True)
-    proyect_id = Column(Integer, nullable=False)
+    project_id = Column(Integer, nullable=False)
     status_id = Column(Integer, default=True)
     date_init = Column(TIMESTAMP(timezone=True), nullable=False)
     date_finish = Column(TIMESTAMP(timezone=True), nullable=False)

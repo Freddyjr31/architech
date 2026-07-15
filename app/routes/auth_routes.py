@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from features.auth.exeptions import InvalidCredentialsError
 from schemas.schemas import ErrorResponse, TokenResponse
 from core.logger import logger
 from core.database import get_db
@@ -31,13 +32,16 @@ async def login_user(payload: UserLoginRequest, db: Annotated[Session, Depends(g
     existing_user = verify_user(payload.username, db)
     
     if not existing_user or not security.verify_password(payload.password, existing_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales inválidas. Usuario o contraseña incorrectos."
-            )
+        raise InvalidCredentialsError
+        
+    token_data = {
+        "user_id": existing_user.id, 
+        "username": existing_user.username,
+    }
 
     #* Genero el token de acceso JWT para el usuario autenticado
-    token = security.create_access_token(data={"sub": existing_user.username})
+    # token = security.create_access_token(data={"sub": existing_user.username})
+    token = security.create_access_token(data=token_data)
     logger.info(f"Inicio de sesión exitoso para usuario: {payload.username}. Token generado.")
     
     return TokenResponse(access_token=token)

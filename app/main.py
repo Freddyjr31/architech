@@ -1,16 +1,16 @@
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from core.error_handlers import register_error_handlers
 from routes import register_all_routers
 from core.logger import logger
-
 from core.middleware import LogMiddleware, origins
 
 #* Instancia de FastAPI
 app = FastAPI(
     title="ArchiTech API",
-    version="1.0.2",
+    version="1.0.3",
     description="API para la gestión de usuarios, proyectos y tareas de ArchiTech",
 )
 
@@ -21,7 +21,6 @@ def on_startup():
     Inicializa la base de datos y registra el arranque.
     """
     logger.info("Iniciando aplicación FastAPI Auth...")
-
     logger.info("Aplicación lista para recibir peticiones.")
 
 #? -- Middlewares
@@ -32,15 +31,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 app.add_middleware(LogMiddleware)
 
-#? -- Rutas de la aplicación
+#? --- Registro las rutas de la aplicación ---
 register_all_routers(app)
+
+#? -- Registrar los manejadores de errores personalizados
+register_error_handlers(app)
 
 @app.get("/")
 def read_root():
-    return {"message": "ArchiTech API its running"}
-
+    return "ArchiTech API its running"
 
 @app.exception_handler(Exception)
 def global_exception_handler(request: Request, exc: Exception):

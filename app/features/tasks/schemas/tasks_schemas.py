@@ -1,10 +1,10 @@
-from fastapi import BaseModel, Field
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 class CreateTaskRequest(BaseModel):
     title: str = Field(..., min_length=3, max_length=50)
     description: str = Field(..., min_length=3, max_length=50)
-    proyect_id: int = Field(..., description="ID del proyecto al que pertenece la tarea")
+    project_id: int = Field(..., description="ID del proyecto al que pertenece la tarea")
     date_init: datetime = Field(..., description="Fecha de inicio de la tarea")
     date_finish: datetime = Field(..., description="Fecha de fin de la tarea")
     owner_id: int = Field(..., description="ID del usuario que creo la tarea")

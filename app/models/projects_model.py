@@ -4,8 +4,8 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 from core.database import Base
 
-class ProyectModel(Base):
-    __tablename__ = "proyects"
+class ProjectModel(Base):
+    __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(100), unique=True, nullable=False)

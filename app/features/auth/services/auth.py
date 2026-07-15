@@ -1,4 +1,5 @@
 
+from features.auth.exeptions import AuthError, UserNotFoundError
 from core.logger import logger
 from models.users_model import UserModel
 
@@ -12,9 +13,9 @@ def verify_user(username: str, db):
         #* Si el usuario no existe, retorna None
         if not existing_user:
             logger.warning(f"Usuario '{username}' no encontrado en la base de datos.")
-            return None
+            raise UserNotFoundError(username)
         
         return existing_user
     
     except Exception as e:
-        raise ValueError(f"Error al verificar el usuario: {str(e)}")
+        raise AuthError(f"Error al verificar el usuario: {str(e)}")
