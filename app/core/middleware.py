@@ -1,6 +1,6 @@
 import logging
 import time
-
+import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
@@ -11,12 +11,23 @@ logger = logging.getLogger("architech")
 
 class LogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        
+        # Generar un ID de solicitud unico
+        request_id = str(uuid.uuid4())
+        
+        # Agregar el ID de solicitud a la solicitud
+        request.state.request_id = request_id
+        
         start = time.time()
         logger.info("→ %s %s", request.method, request.url.path)
         response = await call_next(request)
         elapsed = time.time() - start
+        
+        response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time"] = f"{elapsed:.4f}"
+        
         logger.info("← %s %s → %s (%.3fs)", request.method, request.url.path, response.status_code, elapsed)
+        
         return response
 
 

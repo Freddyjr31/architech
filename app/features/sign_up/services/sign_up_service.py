@@ -1,12 +1,10 @@
-
-# from fastapi import HTTPException
-from features.sign_up.exeptions import EmailAlreadyExistsError, UserNameAlreadyExistsError
+from features.sign_up.exceptions import EmailAlreadyExistsError, UserNameAlreadyExistsError
 from core.logger import logger
 from features.sign_up.schemas.sign_up_schemas import UserRegisterRequest
 from models.users_model import UserModel
 from core.security import hash_password
 
-def register_user(user_data: UserRegisterRequest, db):
+def register_user(user_data: UserRegisterRequest, db) -> UserModel:
     """
     - Valida una existencia previa del usuario y correo para notificar si ya esta creado
     - Registra un nuevo usuario en la base de datos.
@@ -44,4 +42,4 @@ def register_user(user_data: UserRegisterRequest, db):
     
     except Exception as e:
         db.rollback()
-        raise e
+        raise

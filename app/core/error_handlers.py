@@ -14,14 +14,14 @@ from features.projects.exceptions import (
 )
 
 # ── Auth ──
-from features.auth.exeptions import (
+from features.auth.exceptions import (
     AuthError as AuthError,
     UserNotFoundError,
     InvalidCredentialsError
 )
 
 # ── Sign Up ──
-from features.sign_up.exeptions import (
+from features.sign_up.exceptions import (
     SignUpError as SignUpError,
     UserNameAlreadyExistsError,
     EmailAlreadyExistsError

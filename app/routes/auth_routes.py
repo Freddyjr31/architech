@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from features.auth.exeptions import InvalidCredentialsError
+from features.auth.exceptions import InvalidCredentialsError
 from schemas.schemas import ErrorResponse, TokenResponse
 from core.logger import logger
 from core.database import get_db

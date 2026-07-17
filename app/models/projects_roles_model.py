@@ -3,7 +3,7 @@ from core.database import Base
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
-class projectsRolesModel(Base):
+class ProjectsRolesModel(Base):
     __tablename__ = "projects_roles"
 
     id = Column(Integer, primary_key=True, index=True)

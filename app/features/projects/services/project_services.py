@@ -2,13 +2,12 @@
     Defino los servicios relacionados con los Projectos, incluyendo la creación, eliminación y obtención de Projectos.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
 from core.logger import logger
 from features.projects.exceptions import (
-    MemberAlreadyAssignedError,
     NotPermissionToDelete,
     ProjectNameTakenError,
     StatusNotFoundError,
@@ -20,7 +19,7 @@ from models.projects_model import ProjectModel
 from models.status_process_model import StatusModel
 
 
-async def get_in_course_status_id(db: Session) -> int:
+def get_in_course_status_id(db: Session) -> int:
     """
     Servicio para obtener el ID del estado "In Course" de la tabla de estados.
     """
@@ -34,7 +33,7 @@ async def get_in_course_status_id(db: Session) -> int:
     return in_course_status.id
 
 
-async def create_Project_service(payload: CreateProjectRequest, owner_id: int, db: Session) -> ProjectModel:
+def create_project_service(payload: CreateProjectRequest, owner_id: int, db: Session) -> ProjectModel:
     """
     Servicio para crear un Projecto
     """
@@ -45,50 +44,61 @@ async def create_Project_service(payload: CreateProjectRequest, owner_id: int, d
         raise ProjectNameTakenError(payload.title)
 
     #* Guardar el nuevo Projecto en la base de datos
-    Project = ProjectModel(
+    project = ProjectModel(
         title=payload.title,
         description=payload.description,
-        id_status=await get_in_course_status_id(db),
-        created_at=datetime.utcnow(),
+        id_status=get_in_course_status_id(db),
+        created_at=datetime.now(timezone.utc),
     )
 
-    db.add(Project)
-    db.commit()
-    db.refresh(Project)
-
-    logger.info(f"Projecto creado con éxito: {Project}")
-
-    return Project
-
-
-async def save_members_to_Project(project_id: int, members: list, db: Session) -> None:
-    """
-    Servicio para guardar los miembros de un Projecto
-    """
-
-    for member in members:
-        existing_member = db.query(ProjectsMembersModel).filter_by(
-            project_id=project_id,
-            user_id=member,
-            role_id=1
-        ).first()
-
-        if existing_member:
-            raise MemberAlreadyAssignedError(member)
-
-        new_member = ProjectsMembersModel(
-            project_id=project_id,
-            user_id=member,
-            role_id=1,
-            created_at=datetime.utcnow(),
-        )
-
-        db.add(new_member)
+    db.add(project)
+    db.flush()
+    
+     # Agregar miembros (sin commit)
+    member = ProjectsMembersModel(
+        project_id=project.id,
+        user_id=owner_id,
+        role_id=1,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(member)
 
     db.commit()
+    db.refresh(project)
+
+    logger.info(f"Projecto creado con éxito: {project}")
+
+    return project
 
 
-def delete_Project_service(project_id: int, current_user_id: int, db: Session) -> bool:
+# def save_members_to_project(project_id: int, members: list, db: Session) -> None:
+#     """
+#     Servicio para guardar los miembros de un Projecto
+#     """
+
+#     for member in members:
+#         existing_member = db.query(ProjectsMembersModel).filter_by(
+#             project_id=project_id,
+#             user_id=member,
+#             role_id=1
+#         ).first()
+
+#         if existing_member:
+#             raise MemberAlreadyAssignedError(member)
+
+#         new_member = ProjectsMembersModel(
+#             project_id=project_id,
+#             user_id=member,
+#             role_id=1,
+#             created_at=datetime.now(timezone.utc),
+#         )
+
+#         db.add(new_member)
+
+#     db.commit()
+
+
+def delete_project_service(project_id: int, current_user_id: int, db: Session) -> None:
     """
     Servicio para eliminar un Projecto
     """
@@ -117,5 +127,3 @@ def delete_Project_service(project_id: int, current_user_id: int, db: Session) -
     db.commit()
 
     logger.info(f"Projecto eliminado con éxito: {project_id}")
-
-    return True

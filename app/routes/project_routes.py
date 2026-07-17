@@ -7,9 +7,8 @@ from core.logger import logger
 from features.projects.exceptions import ProjectError
 from features.projects.schemas.project_schemas import CreateProjectRequest, CreateProjectResponse
 from features.projects.services.project_services import (
-    create_Project_service,
-    save_members_to_Project,
-    delete_Project_service
+    create_project_service,
+    delete_project_service
 )
 from schemas.schemas import ErrorResponse
 
@@ -38,9 +37,7 @@ async def create_Project(
     owner_id: int = current_user["user_id"]
 
     try:
-        project = await create_Project_service(payload, owner_id, db)
-
-        await save_members_to_Project(project.id, [owner_id], db)
+        project = create_project_service(payload, owner_id, db)
 
         logger.info(f"Projecto creado exitosamente: {project.id} - {project.title}")
 
@@ -80,9 +77,7 @@ def delete_Project(
     """
     
     current_user_id: int = current_user["user_id"]
-    delete_project = delete_Project_service(id, current_user_id, db)
-    
-    if delete_project:
-        logger.info(f"Projecto eliminado con éxito: {id}")
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    delete_project_service(id, current_user_id, db)
+    logger.info(f"Projecto eliminado con éxito: {id}")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
     

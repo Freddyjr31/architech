@@ -24,9 +24,9 @@ Commit inicial de la API.
 
 ---
 
-## [1.0.3] — No publicado
+## [1.0.3] — 2026-07-16
 
-Refactorización profunda del manejador de errores y corrección de nomenclatura (`proyects` → `projects`).
+Refactorización profunda del manejador de errores, atomicidad en transacciones y relationships en modelos.
 
 ### Added
 
@@ -50,7 +50,16 @@ Refactorización profunda del manejador de errores y corrección de nomenclatura
   - `get_current_user` como dependencia global vía `HTTPBearer`
   - Type alias `CurrentUser = Annotated[dict, Depends(get_current_user)]`
 
-- **Servicio de eliminación de proyectos** con verificación de permisos (`delete_Project_service`)
+- **Servicio de eliminación de proyectos** con verificación de permisos (`delete_project_service`)
+
+- **`models/__init__.py`** — carga centralizada de todos los modelos SQLAlchemy para garantizar que el registry los conozca al iniciar
+
+- **Relationships en modelos:**
+  - `ProjectModel`: `members`, `tasks`
+  - `ProjectsMembersModel`: `project`, `user`, `role`
+  - `UserModel`: `project_memberships`, `owned_tasks`, `assigned_tasks`
+
+- **`lifespan` context manager** en `main.py` reemplaza `@app.on_event("startup")` deprecated
 
 ### Changed
 
@@ -61,6 +70,16 @@ Refactorización profunda del manejador de errores y corrección de nomenclatura
   - Actualizadas todas las referencias en rutas, servicios y __init__
 
 - **Servicios desacoplados de FastAPI**: eliminado `HTTPException` de `features/auth/services/auth.py`, `features/sign_up/services/sign_up_service.py` y `features/projects/services/project_services.py` — ahora usan exclusivamente sus excepciones propias
+
+- **Atomicidad en `create_project_service`**: combinado `create_project` + `save_members_to_project` en una sola función con `db.flush()` + un solo `db.commit()` — si falla, todo se revierte
+
+- **`project_services.py`**: eliminado import `MemberAlreadyAssignedError` (no usado), `delete_project_service` type hint `-> bool` → `-> None`, eliminado `return True`
+
+- **`project_routes.py`**: eliminado import y llamada comentada de `save_members_to_project`, simplificado `delete_Project` (eliminado `if` redundante)
+
+- **`sign_up_routes.py`**: agregado try/except con `SignUpError` + `Exception` (patrón consistente con project_routes), eliminado `if new_user:` redundante
+
+- **`sign_up_service.py`**: eliminado import comentado, agregado return type hint `-> UserModel`
 
 - **Ruta de proyectos (`project_routes.py`)**:
   - Prefix cambiado de `/api/v1/proyect` a `/api/v1/projects`
@@ -75,8 +94,7 @@ Refactorización profunda del manejador de errores y corrección de nomenclatura
 - **Ruta de tareas (`task_routes.py`)**: agregada dependencia `get_current_user` global vía router
 - **Modelo `status_process_model.py`**: corregido nombre de clase y tabla (`ProyectsRolesModel` → `StatusModel`, `proyects_roles` → `status_process`)
 - **Modelo `tasks_model.py`**: campo `proyect_id` renombrado a `project_id`
-- **Versión de la API**: `1.0.2` → `1.0.3` (luego `1.1.0` en este changelog)
-- **`main.py`**: handlers de error movidos a `register_error_handlers(app)`, limpieza de imports y formato
+- **`main.py`**: handlers de error movidos a `register_error_handlers(app)`, agregado `import models` para carga de modelos, `lifespan` context manager
 
 ### Fixed
 
@@ -92,8 +110,24 @@ Refactorización profunda del manejador de errores y corrección de nomenclatura
   - `app/models/proyects_members_model.py`
   - `app/models/proyects_roles_model.py`
   - `app/features/proyects/schemas/proyect_schemas.py`
-- **Código muerto**: bloque `except HTTPException` inalcanzable en `save_members_to_Project`, variable `dict_proyect` en service
+- **Código muerto**: bloque `except HTTPException` inalcanzable en `save_members_to_Project`, variable `dict_proyect` en service, imports comentados
 
 ---
+
+## [1.0.4] — 2026-7-16
+
+Corrección de nombre de columna y limpieza de configuración Docker.
+
+### Fixed
+
+- **`tasks_model.py`**: corregido nombre de columna `assigned_id` → `assignne_id` (typo en BD)
+
+### Removed
+
+- **`docker-compose.yaml`**: eliminada clave `version: '3.8'` deprecated en Docker Compose V2
+
+---
+
+
 
 

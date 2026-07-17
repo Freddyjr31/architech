@@ -12,6 +12,7 @@ from .auth_routes import router as auth_router
 from .sign_up_routes import router as sign_up_router
 from .project_routes import router as project_router
 from .task_routes import router as task_router
+from .health_routes import router as health_router
 
 def register_all_routers(app: FastAPI) -> None:
     """
@@ -25,3 +26,4 @@ def register_all_routers(app: FastAPI) -> None:
     app.include_router(sign_up_router)
     app.include_router(project_router)
     app.include_router(task_router)
+    app.include_router(health_router)

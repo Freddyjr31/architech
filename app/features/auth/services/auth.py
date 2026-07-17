@@ -1,5 +1,5 @@
 
-from features.auth.exeptions import AuthError, UserNotFoundError
+from features.auth.exceptions import AuthError, UserNotFoundError
 from core.logger import logger
 from models.users_model import UserModel
 

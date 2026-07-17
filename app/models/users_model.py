@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
+from sqlalchemy.orm import relationship
 from core.database import Base
 
 class UserModel(Base):
@@ -12,3 +13,7 @@ class UserModel(Base):
     hashed_password = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'), onupdate=text('now()'), nullable=False)
+
+    project_memberships = relationship("ProjectsMembersModel", back_populates="user")
+    owner_tasks = relationship("TaskModel", back_populates="owner_tasks", foreign_keys="[TaskModel.owner_id]")
+    assigned_tasks = relationship("TaskModel", back_populates="assigned", foreign_keys="[TaskModel.assigned_id]")
