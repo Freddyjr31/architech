@@ -8,7 +8,8 @@ Para añadir un nuevo módulo:
 """
 
 from fastapi import FastAPI
-from .auth_routes import router as auth_router
+# from .auth_routes import router as auth_router
+from features.auth.routes.auth_routes import router as auth_router
 from .sign_up_routes import router as sign_up_router
 from .project_routes import router as project_router
 from .task_routes import router as task_router

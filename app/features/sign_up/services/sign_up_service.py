@@ -25,7 +25,7 @@ def register_user(user_data: UserRegisterRequest, db) -> UserModel:
             logger.warning(f"Registro fallido: el correo electrónico '{user_data.email}' ya está en uso.")
             raise EmailAlreadyExistsError(user_data.email)
         
-        #* Lógica para registrar al usuario (aún no implementada)
+        #* Lógica para registrar al usuario
         new_user = UserModel(
             username=user_data.username,
             email=user_data.email,

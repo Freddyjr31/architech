@@ -2,7 +2,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import models  # noqa: F401 — fuerza carga de todos los modelos SQLAlchemy
+# import models  # noqa: F401 — fuerza carga de todos los modelos SQLAlchemy
 from core.error_handlers import register_error_handlers
 from routes import register_all_routers
 from core.logger import logger
@@ -44,15 +44,3 @@ register_error_handlers(app)
 @app.get("/")
 def read_root():
     return "ArchiTech API its running"
-
-@app.exception_handler(Exception)
-def global_exception_handler(request: Request, exc: Exception):
-    """
-    Captura cualquier excepción no manejada y retorna un error 500.
-    """
-    logger.error(f"Excepción no manejada: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Error interno del servidor."},
-    )
-    
