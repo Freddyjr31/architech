@@ -11,13 +11,14 @@ from fastapi import FastAPI
 
 # from .auth_routes import router as auth_router
 # from .sign_up_routes import router as sign_up_router
-from .project_routes import router as project_router
+# from .project_routes import router as project_router
 from .task_routes import router as task_router
 from .health_routes import router as health_router
 
 #? ---- Nuevos imports
 from features.auth.routes.auth_routes import router as auth_router
 from features.sign_up.routes.sign_up_routes import router as sign_up_router
+from features.projects.routes.projects_routes import router as project_router
 
 def register_all_routers(app: FastAPI) -> None:
     """

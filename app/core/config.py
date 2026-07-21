@@ -3,7 +3,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 #? ----- Project version
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 
 class Settings(BaseSettings):
     
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     DATABASE_TYPE: str = "postgresql"
 
     # Activar logs detallados de SQLAlchemy (útil en desarrollo)
-    DATABASE_ECHO: bool = False
+    DATABASE_ECHO: bool = True
 
     #? ──────────────────────────────────────────────
     #?               JWT (Autenticación)
