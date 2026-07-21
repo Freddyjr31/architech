@@ -19,3 +19,10 @@ class TokenResponse(BaseModel):
     """
     access_token: str = Field(..., description="Token de acceso")
     token_type: str = "bearer"
+    
+# ─────────────────────────────────────────────
+# Esquema para el payload del token JWT
+# ───────────────────────────────────────────── 
+class TokenPayload(BaseModel):
+    username: str
+    user_id: int

@@ -2,6 +2,8 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+#? ----- Project version
+VERSION = "1.0.6"
 
 class Settings(BaseSettings):
     

@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.logger import logger
+from core.config import VERSION
 
 router = APIRouter(
     tags=["Health"],
@@ -24,5 +25,5 @@ async def health_check(db: Annotated[Session, Depends(get_db)]):
     return {
         "status": "OK" if db_status == "connected" else "ERROR",
         "database": db_status,
-        "version": "1.0.4"
+        "version": VERSION
     }

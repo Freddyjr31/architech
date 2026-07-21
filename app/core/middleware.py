@@ -4,6 +4,7 @@ import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+from core.config import VERSION
 from core.config import get_settings
 
 settings = get_settings()
@@ -25,6 +26,8 @@ class LogMiddleware(BaseHTTPMiddleware):
         
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time"] = f"{elapsed:.4f}"
+        response.headers["X-Total-Time"] = f"{time.time() - start:.4f}"
+        response.headers["X-API-Version"] = VERSION
         
         logger.info("← %s %s → %s (%.3fs)", request.method, request.url.path, response.status_code, elapsed)
         

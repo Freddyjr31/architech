@@ -114,6 +114,45 @@ Refactorización profunda del manejador de errores, atomicidad en transacciones 
 
 ---
 
+## [1.0.6] — 2026-07-20
+
+Migración a Clean Architecture: separación de capas (domain, repository, service) en los módulos auth y sign_up, inyección de dependencias, eliminación de código muerto.
+
+### Added
+
+- **Constante global `VERSION`** en `core/config.py` — única fuente de verdad para la versión del proyecto, utilizada en `FastAPI(version=...)`
+- **Capa `domain/entities.py`** en auth y sign_up — entidades `UserEntity` y `UserSignUpEntity` como dataclasses puras, separadas del modelo ORM
+- **Capa `repository/`** en auth y sign_up:
+  - `AuthRepositoryInterface` y `SignUpRepositoryInterface` — contratos abstractos (ABC) que definen las operaciones de persistencia
+  - `AuthRepositoryImpl` y `SignUpRepositoryImpl` — implementaciones concretas con SQLAlchemy que mapean entre entidades de dominio y modelos ORM
+- **`dependencies.py`** en auth y sign_up — cadena de inyección de dependencias (`get_db` → `get_*_repository` → `get_*_service`) usando `Annotated[..., Depends()]`
+- **`TokenPayload` como Pydantic model** en `auth/schemas/auth_schemas.py` — reemplaza el dict sin tipo para el payload del JWT
+
+### Changed
+
+- **Auth route movido** de `app/routes/auth_routes.py` a `features/auth/routes/auth_routes.py` — el router ahora vive dentro del módulo
+- **Sign up route movido** de `app/routes/sign_up_routes.py` a `features/sign_up/routes/sign_up_routes.py`
+- **`routes/__init__.py`** actualizado para importar routers desde `features/` en lugar de `app/routes/`
+- **Auth service (`AuthService`)**: lógica de autenticación unificada en `authenticate_user()`, recibe repository por inyección en vez de `db` directo
+- **Sign up service (`SignUpService`)**: refactorizado a clase con inyección de repository, elimina dependencia directa de `db` y try/except con `self.db.rollback()` inexistente
+- **Schemas**: eliminado `Field(...)` con ellipsis en todos los modelos Pydantic (`auth_schemas.py`, `sign_up_schemas.py`)
+- **Rutas auth y sign_up**: cambiadas de `async def` a `def` (operaciones sync con SQLAlchemy)
+
+### Fixed
+
+- **`signup_repository_impl.py`**: corregida query a `UserModel` en vez de `UserSignUpEntity` (fallaba en runtime)
+- **`signup_repository_impl.py`**: mapeo explícito de `UserSignUpEntity` a `UserModel` al persistir, y viceversa al leer
+- **`auth_service.py`**: corregido `verify_password(username, ...)` → `verify_password(password, ...)` (bug de seguridad)
+
+### Removed
+
+- **Código muerto en auth**: `services/auth.py` (función `verify_user`), `repository/repository.py` (clase `AuthRepository` sin ABC)
+- **Routers viejos**: `app/routes/auth_routes.py` y `app/routes/sign_up_routes.py` comentados (código migrado a features/)
+- **Bloque comentado** en `sign_up_service.py` (función `register_user` antigua, 47 líneas)
+- **Error handler duplicado** `@app.exception_handler(Exception)` en `main.py` (ya existía en `error_handlers.py`)
+
+---
+
 ## [1.0.4] — 2026-7-16
 
 Corrección de nombre de columna y limpieza de configuración Docker.

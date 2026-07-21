@@ -1,13 +1,15 @@
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-# import models  # noqa: F401 — fuerza carga de todos los modelos SQLAlchemy
+
+from core.config import VERSION
 from core.error_handlers import register_error_handlers
-from routes import register_all_routers
 from core.logger import logger
 from core.middleware import LogMiddleware, origins
+
 from contextlib import asynccontextmanager
+
+from routes import register_all_routers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,7 +22,7 @@ async def lifespan(app: FastAPI):
 #* Instancia de FastAPI
 app = FastAPI(
     title="ArchiTech API",
-    version="1.0.4",
+    version=VERSION,
     description="API para la gestión de usuarios, proyectos y tareas de ArchiTech",
     lifespan=lifespan
 )

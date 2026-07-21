@@ -1,26 +1,19 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 
-from features.auth.repository.repository import AuthRepository
 from features.auth.services.auth_service import AuthService
 from features.auth.schemas.auth_schemas import UserLoginRequest
 
 from schemas.schemas import ErrorResponse, TokenResponse
 from core.logger import logger
 from core import security
-from core.database import get_db
+
+from features.auth.dependencies import get_auth_service
 
 router = APIRouter(
     prefix="/api/v1/auth",
     tags=["Authentication"],
 )
-
-def get_auth_repository(db: Annotated[Session, Depends(get_db)]):
-    return AuthRepository(db)
-
-def get_auth_service(repository: Annotated[AuthRepository, Depends(get_auth_repository)]):
-    return AuthService(repository)
 
 @router.post(
     "/login",
@@ -40,9 +33,10 @@ def login_user(
     
     #* verifico si el usuario existe
     user_auth = service.authenticate_user(payload)
+    logger.info(f"Usuario autenticado: {user_auth}")
 
     #* Genero el token de acceso JWT para el usuario autenticado
-    token = security.create_access_token(data=user_auth)
+    token = security.create_access_token(data=user_auth.model_dump())
     logger.info(f"Inicio de sesión exitoso para usuario: {payload.username}. Token generado.")
     
     return TokenResponse(access_token=token)

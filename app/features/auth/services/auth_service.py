@@ -1,12 +1,14 @@
-from features.auth.schemas.auth_schemas import TokenPayload, UserLoginRequest
-from features.auth.repository.repository import AuthRepository
+from features.auth.schemas.auth_schemas import UserLoginRequest
+from features.auth.repository.auth_repository_interface import AuthRepositoryInterface
 from features.auth.exceptions import UserNotFoundError, InvalidCredentialsError
 
 from core import security
 from core.logger import logger
 
+from schemas.schemas import TokenPayload
+
 class AuthService:
-    def __init__(self, auth_repository: AuthRepository):
+    def __init__(self, auth_repository: AuthRepositoryInterface):
         self.auth_repository = auth_repository
         
     def authenticate_user(self, userPayload: UserLoginRequest):
