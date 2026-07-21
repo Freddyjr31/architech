@@ -6,21 +6,99 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y [SemVer](htt
 
 ---
 
-## [1.0.1] — 2026-07-10
+## [1.0.8] — 2026-07-21
 
-Commit inicial de la API.
+Corrección de bugs finales en el módulo projects tras la migración a Clean Architecture.
+
+### Fixed
+
+- **`project_repository_impl.py`**: corregido `role_id` en `create_project` — usaba `_resolve_status_id(project.status_name)` (resolvía status, no rol). Corregido a `role_id=1` (owner)
+- **`project_repository_impl.py`**: eliminado import muerto `datetime, timezone` (ya no se usa en el repository)
+- **`project_services.py`**: eliminado `created_at=datetime.now(timezone.utc)` en creación de `ProjectEntity` — la BD resuelve la fecha con `server_default=text('now()')`
+
+### Removed
+
+- **`project_services.py`**: eliminado código comentado de funciones standalone (`get_in_course_status_id`, `create_project_service`, `delete_project_service`) — reemplazado por `ProjectService` class
+
+---
+
+## [1.0.7] — 2026-07-21
+
+Migración del módulo projects a Clean Architecture: domain entities, repository pattern con ABC, inyección de dependencias y corrección de bugs.
 
 ### Added
 
-- **Estructura base:** FastAPI + SQLAlchemy 2.0 + JWT con `python-jose`
-- **Autenticación:** Endpoint `POST /api/v1/auth/login` con JWT y bcrypt
-- **Registro:** Endpoint `POST /api/v1/sign-up/create-user` con validación de duplicados
-- **Proyectos:** Endpoint `POST /api/v1/proyect/create-project` (esquema `proyects`)
-- **Tareas:** Endpoints CRUD básicos (`POST /api/v1/task/create-task`, `DELETE /api/v1/task/delete-task/{id}`, `GET /api/v1/task/get-tasks`)
-- **Modelos:** `UserModel`, `ProyectModel`, `ProyectsMembersModel`, `ProyectsRolesModel`, `TasksModel`, `StatusProcessModel`
-- **Seguridad:** Hashing de contraseñas con `passlib[bcrypt]`, generación y validación de tokens JWT
-- **Infraestructura:** Docker + docker-compose, logger estructurado, CORS, variables de entorno con `pydantic-settings`
-- **Schemas Pydantic** separados de los modelos de BD
+- **`domain/entities.py`** en projects — entidades `ProjectEntity` y `ProjectMemberEntity` como dataclasses puras
+- **Capa `repository/`** en projects:
+  - `ProjectRepositoryInterface` — contrato abstracto (ABC) con 5 operaciones: `project_exists_by_title`, `get_project_by_id`, `create_project`, `is_project_owner`, `delete_project_with_members`
+  - `ProjectRepositoryImpl` — implementación con SQLAlchemy, mapeo ORM ↔ Entity, resolución de status por nombre (`_resolve_status_id`)
+- **`dependencies.py`** en projects — cadena de inyección `get_db` → `get_project_repository` → `get_project_service`
+- **`ProjectService`** como clase con inyección de repository — `create_project_service` y `delete_project_service` como methods
+
+### Fixed
+
+- **`project_repository_impl.py`**: corregido `is_project_owner` — query cambiada de `ProjectModel` a `ProjectsMembersModel` con filtro `project_id` en vez de `id`
+- **`project_repository_impl.py`**: eliminado `created_at` hardcodeado en `create_project` — la BD resuelve con `server_default=text('now()')`
+- **`project_services.py`**: service ahora recibe `CreateProjectRequest` en vez de `ProjectEntity` — crea el entity internamente con `status_name="En curso"`
+- **`domain/entities.py`**: corregido orden de campos en dataclass — campos sin default (`title`, `description`, `status_name`) antes de campos con default (`id`, `created_at`)
+
+### Changed
+
+- **`project_services.py`**: eliminados imports muertos (`datetime`, `Session`, `StatusNotFoundError`), eliminado código comentado de funciones standalone
+- **`projects_routes.py`**: llamadas actualizadas a `service.create_project_service()` y `service.delete_project_service()` (clase inyectada en vez de funciones standalone)
+
+---
+
+## [1.0.6] — 2026-07-20
+
+Migración a Clean Architecture: separación de capas (domain, repository, service) en los módulos auth y sign_up, inyección de dependencias, eliminación de código muerto.
+
+### Added
+
+- **Constante global `VERSION`** en `core/config.py` — única fuente de verdad para la versión del proyecto, utilizada en `FastAPI(version=...)`
+- **Capa `domain/entities.py`** en auth y sign_up — entidades `UserEntity` y `UserSignUpEntity` como dataclasses puras, separadas del modelo ORM
+- **Capa `repository/`** en auth y sign_up:
+  - `AuthRepositoryInterface` y `SignUpRepositoryInterface` — contratos abstractos (ABC) que definen las operaciones de persistencia
+  - `AuthRepositoryImpl` y `SignUpRepositoryImpl` — implementaciones concretas con SQLAlchemy que mapean entre entidades de dominio y modelos ORM
+- **`dependencies.py`** en auth y sign_up — cadena de inyección de dependencias (`get_db` → `get_*_repository` → `get_*_service`) usando `Annotated[..., Depends()]`
+- **`TokenPayload` como Pydantic model** en `auth/schemas/auth_schemas.py` — reemplaza el dict sin tipo para el payload del JWT
+
+### Changed
+
+- **Auth route movido** de `app/routes/auth_routes.py` a `features/auth/routes/auth_routes.py` — el router ahora vive dentro del módulo
+- **Sign up route movido** de `app/routes/sign_up_routes.py` a `features/sign_up/routes/sign_up_routes.py`
+- **`routes/__init__.py`** actualizado para importar routers desde `features/` en lugar de `app/routes/`
+- **Auth service (`AuthService`)**: lógica de autenticación unificada en `authenticate_user()`, recibe repository por inyección en vez de `db` directo
+- **Sign up service (`SignUpService`)**: refactorizado a clase con inyección de repository, elimina dependencia directa de `db` y try/except con `self.db.rollback()` inexistente
+- **Schemas**: eliminado `Field(...)` con ellipsis en todos los modelos Pydantic (`auth_schemas.py`, `sign_up_schemas.py`)
+- **Rutas auth y sign_up**: cambiadas de `async def` a `def` (operaciones sync con SQLAlchemy)
+
+### Fixed
+
+- **`signup_repository_impl.py`**: corregida query a `UserModel` en vez de `UserSignUpEntity` (fallaba en runtime)
+- **`signup_repository_impl.py`**: mapeo explícito de `UserSignUpEntity` a `UserModel` al persistir, y viceversa al leer
+- **`auth_service.py`**: corregido `verify_password(username, ...)` → `verify_password(password, ...)` (bug de seguridad)
+
+### Removed
+
+- **Código muerto en auth**: `services/auth.py` (función `verify_user`), `repository/repository.py` (clase `AuthRepository` sin ABC)
+- **Routers viejos**: `app/routes/auth_routes.py` y `app/routes/sign_up_routes.py` comentados (código migrado a features/)
+- **Bloque comentado** en `sign_up_service.py` (función `register_user` antigua, 47 líneas)
+- **Error handler duplicado** `@app.exception_handler(Exception)` en `main.py` (ya existía en `error_handlers.py`)
+
+---
+
+## [1.0.4] — 2026-07-16
+
+Corrección de nombre de columna y limpieza de configuración Docker.
+
+### Fixed
+
+- **`tasks_model.py`**: corregido nombre de columna `assigned_id` → `assignne_id` (typo en BD)
+
+### Removed
+
+- **`docker-compose.yaml`**: eliminada clave `version: '3.8'` deprecated en Docker Compose V2
 
 ---
 
@@ -114,59 +192,18 @@ Refactorización profunda del manejador de errores, atomicidad en transacciones 
 
 ---
 
-## [1.0.6] — 2026-07-20
+## [1.0.1] — 2026-07-10
 
-Migración a Clean Architecture: separación de capas (domain, repository, service) en los módulos auth y sign_up, inyección de dependencias, eliminación de código muerto.
+Commit inicial de la API.
 
 ### Added
 
-- **Constante global `VERSION`** en `core/config.py` — única fuente de verdad para la versión del proyecto, utilizada en `FastAPI(version=...)`
-- **Capa `domain/entities.py`** en auth y sign_up — entidades `UserEntity` y `UserSignUpEntity` como dataclasses puras, separadas del modelo ORM
-- **Capa `repository/`** en auth y sign_up:
-  - `AuthRepositoryInterface` y `SignUpRepositoryInterface` — contratos abstractos (ABC) que definen las operaciones de persistencia
-  - `AuthRepositoryImpl` y `SignUpRepositoryImpl` — implementaciones concretas con SQLAlchemy que mapean entre entidades de dominio y modelos ORM
-- **`dependencies.py`** en auth y sign_up — cadena de inyección de dependencias (`get_db` → `get_*_repository` → `get_*_service`) usando `Annotated[..., Depends()]`
-- **`TokenPayload` como Pydantic model** en `auth/schemas/auth_schemas.py` — reemplaza el dict sin tipo para el payload del JWT
-
-### Changed
-
-- **Auth route movido** de `app/routes/auth_routes.py` a `features/auth/routes/auth_routes.py` — el router ahora vive dentro del módulo
-- **Sign up route movido** de `app/routes/sign_up_routes.py` a `features/sign_up/routes/sign_up_routes.py`
-- **`routes/__init__.py`** actualizado para importar routers desde `features/` en lugar de `app/routes/`
-- **Auth service (`AuthService`)**: lógica de autenticación unificada en `authenticate_user()`, recibe repository por inyección en vez de `db` directo
-- **Sign up service (`SignUpService`)**: refactorizado a clase con inyección de repository, elimina dependencia directa de `db` y try/except con `self.db.rollback()` inexistente
-- **Schemas**: eliminado `Field(...)` con ellipsis en todos los modelos Pydantic (`auth_schemas.py`, `sign_up_schemas.py`)
-- **Rutas auth y sign_up**: cambiadas de `async def` a `def` (operaciones sync con SQLAlchemy)
-
-### Fixed
-
-- **`signup_repository_impl.py`**: corregida query a `UserModel` en vez de `UserSignUpEntity` (fallaba en runtime)
-- **`signup_repository_impl.py`**: mapeo explícito de `UserSignUpEntity` a `UserModel` al persistir, y viceversa al leer
-- **`auth_service.py`**: corregido `verify_password(username, ...)` → `verify_password(password, ...)` (bug de seguridad)
-
-### Removed
-
-- **Código muerto en auth**: `services/auth.py` (función `verify_user`), `repository/repository.py` (clase `AuthRepository` sin ABC)
-- **Routers viejos**: `app/routes/auth_routes.py` y `app/routes/sign_up_routes.py` comentados (código migrado a features/)
-- **Bloque comentado** en `sign_up_service.py` (función `register_user` antigua, 47 líneas)
-- **Error handler duplicado** `@app.exception_handler(Exception)` en `main.py` (ya existía en `error_handlers.py`)
-
----
-
-## [1.0.4] — 2026-7-16
-
-Corrección de nombre de columna y limpieza de configuración Docker.
-
-### Fixed
-
-- **`tasks_model.py`**: corregido nombre de columna `assigned_id` → `assignne_id` (typo en BD)
-
-### Removed
-
-- **`docker-compose.yaml`**: eliminada clave `version: '3.8'` deprecated en Docker Compose V2
-
----
-
-
-
-
+- **Estructura base:** FastAPI + SQLAlchemy 2.0 + JWT con `python-jose`
+- **Autenticación:** Endpoint `POST /api/v1/auth/login` con JWT y bcrypt
+- **Registro:** Endpoint `POST /api/v1/sign-up/create-user` con validación de duplicados
+- **Proyectos:** Endpoint `POST /api/v1/proyect/create-project` (esquema `proyects`)
+- **Tareas:** Endpoints CRUD básicos (`POST /api/v1/task/create-task`, `DELETE /api/v1/task/delete-task/{id}`, `GET /api/v1/task/get-tasks`)
+- **Modelos:** `UserModel`, `ProyectModel`, `ProyectsMembersModel`, `ProyectsRolesModel`, `TasksModel`, `StatusProcessModel`
+- **Seguridad:** Hashing de contraseñas con `passlib[bcrypt]`, generación y validación de tokens JWT
+- **Infraestructura:** Docker + docker-compose, logger estructurado, CORS, variables de entorno con `pydantic-settings`
+- **Schemas Pydantic** separados de los modelos de BD

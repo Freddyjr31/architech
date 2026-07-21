@@ -1,6 +1,5 @@
 
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
 
 from features.projects.exceptions import StatusNotFoundError
 from models.projects_members_model import ProjectsMembersModel
@@ -47,7 +46,6 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
                 title=project.title,
                 description=project.description,
                 id_status=self._resolve_status_id(project.status_name),
-                # created_at=datetime.now(timezone.utc),
             )
             
             self.db.add(new_project)
@@ -57,7 +55,7 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
             member = ProjectsMembersModel(
                 project_id=new_project.id,
                 user_id=owner_id,
-                role_id=self._resolve_status_id(project.status_name),
+                role_id=1,
             )
             
             self.db.add(member)

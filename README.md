@@ -68,29 +68,85 @@ Documentación interactiva en:
 ## Estructura del proyecto
 
 ```
-├── .opencode/              # Comandos y skills para opencode
+├── .opencode/                  # Comandos y skills para opencode
 │   ├── commands/
 │   │   ├── endpoints.md
 │   │   └── serve.md
 │   └── skills/
 │       └── fastapi/
-├── opencode.example.json   # Template de configuración de opencode
-├── AGENTS.md               # Contexto para asistentes IA
+├── opencode.example.json       # Template de configuración de opencode
+├── AGENTS.md                   # Contexto para asistentes IA
+├── CHANGELOG.md                # Historial de versiones
 ├── app/
-│   ├── core/               # Configuración, seguridad, DB, middlewares
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── middleware.py
-│   │   └── security.py
-│   ├── schemas/
-│   ├── models/
-│   ├── features/           # Módulos por funcionalidad
+│   ├── core/                   # Configuración, seguridad, DB, middlewares
+│   │   ├── config.py           # Settings + constante VERSION
+│   │   ├── database.py         # Engine, session, Base
+│   │   ├── dependencies.py     # get_current_user (JWT)
+│   │   ├── error_handlers.py   # Manejador centralizado de errores
+│   │   ├── logger.py           # Logger estructurado
+│   │   ├── middleware.py       # CORS + LogMiddleware
+│   │   └── security.py         # JWT + bcrypt
+│   ├── models/                 # Modelos SQLAlchemy (ORM)
+│   │   ├── __init__.py         # Carga centralizada de modelos
+│   │   ├── users_model.py
+│   │   ├── projects_model.py
+│   │   ├── projects_members_model.py
+│   │   ├── projects_roles_model.py
+│   │   ├── status_process_model.py
+│   │   └── tasks_model.py
+│   ├── schemas/                # Schemas compartidos
+│   │   └── schemas.py          # TokenPayload, ErrorResponse
+│   ├── features/               # Módulos por funcionalidad (Clean Architecture)
 │   │   ├── auth/
-│   │   └── sign_up/
-│   ├── routes/             # Endpoints de la API
-│   │   ├── auth_routes.py
-│   │   └── sign_up_routes.py
-│   └── main.py             # Punto de entrada
+│   │   │   ├── domain/
+│   │   │   │   └── entities.py         # UserEntity
+│   │   │   ├── repository/
+│   │   │   │   ├── auth_repository_interface.py
+│   │   │   │   └── auth_repository_impl.py
+│   │   │   ├── services/
+│   │   │   │   └── auth_service.py     # AuthService
+│   │   │   ├── schemas/
+│   │   │   │   └── auth_schemas.py
+│   │   │   ├── routes/
+│   │   │   │   └── auth_routes.py
+│   │   │   ├── dependencies.py         # DI: get_db → get_repository → get_service
+│   │   │   └── exceptions.py
+│   │   ├── sign_up/
+│   │   │   ├── domain/
+│   │   │   │   └── entities.py         # UserSignUpEntity
+│   │   │   ├── repository/
+│   │   │   │   ├── signup_repository_interface.py
+│   │   │   │   └── signup_repository_impl.py
+│   │   │   ├── services/
+│   │   │   │   └── sign_up_service.py  # SignUpService
+│   │   │   ├── schemas/
+│   │   │   │   └── sign_up_schemas.py
+│   │   │   ├── routes/
+│   │   │   │   └── sign_up_routes.py
+│   │   │   ├── dependencies.py
+│   │   │   └── exceptions.py
+│   │   ├── projects/
+│   │   │   ├── domain/
+│   │   │   │   └── entities.py                 # ProjectEntity, ProjectMemberEntity
+│   │   │   ├── repository/
+│   │   │   │   ├── project_repository_interface.py
+│   │   │   │   └── project_repository_impl.py
+│   │   │   ├── services/
+│   │   │   │   └── project_services.py         # ProjectService
+│   │   │   ├── schemas/
+│   │   │   │   └── project_schemas.py
+│   │   │   ├── routes/
+│   │   │   │   └── projects_routes.py
+│   │   │   ├── dependencies.py
+│   │   │   └── exceptions.py
+│   │   └── tasks/
+│   │       ├── schemas/
+│   │       └── services/
+│   ├── routes/                 # Endpoints legacy (comentados, migrados a features/)
+│   │   ├── __init__.py         # Importa routers desde features/
+│   │   ├── health_routes.py
+│   │   └── task_routes.py
+│   └── main.py                 # Punto de entrada (FastAPI + lifespan)
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yaml
