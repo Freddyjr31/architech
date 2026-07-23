@@ -6,6 +6,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y [SemVer](htt
 
 ---
 
+## [1.0.9] — 2026-07-22
+
+Endpoints de consulta de proyectos y corrección de bugs en repository y CORS.
+
+### Added
+
+- **`project_repository_interface.py`**: agregados métodos abstractos `get_all_projects(limit, skip)` y `get_projects_by_user_id(user_id, limit, skip)`
+- **`project_repository_impl.py`**: implementación de `get_all_projects` y `get_projects_by_user_id` con paginación (`.limit()` + `.offset()`)
+- **`project_services.py`**: `get_all_projects_service` y `get_projects_by_user_id_service` con validación de límites (max 20, skip no negativo)
+- **`projects_routes.py`**: `GET /api/v1/projects/` — obtiene todos los proyectos con query params `limit` y `skip`
+- **`projects_routes.py`**: `GET /api/v1/projects/user` — obtiene proyectos del usuario autenticado con `limit` y `skip`
+
+### Fixed
+
+- **`middleware.py`**: corregido typo en CORS origins — `localholst` → `localhost` (bloqueaba requests desde Angular en puerto 4200)
+- **`project_repository_impl.py`**: corregido `.skip(skip)` → `.offset(skip)` — método `.skip()` no existe en SQLAlchemy 2.0 (afectaba `get_all_projects` y `get_projects_by_user_id`)
+
+---
+
 ## [1.0.8] — 2026-07-21
 
 Corrección de bugs finales en el módulo projects tras la migración a Clean Architecture.

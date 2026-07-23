@@ -28,8 +28,6 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
             status_name=model.status.name if model.status else None,
             created_at=model.created_at
         )
-    
-        
     def project_exists_by_title(self, title: str) -> bool:
         existing_project = self.db.query(ProjectModel).filter_by(title=title).first()
         return existing_project is not None
@@ -73,7 +71,6 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
             project_id=project_id,
             user_id=user_id,
             role_id=1).first() is not None
-        
     
     def delete_project_with_members(self, id_project) -> None:
         
@@ -86,3 +83,11 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
             self.db.delete(project)
 
         self.db.commit()
+        
+    def get_all_projects(self, limit: int, skip: int) -> list[ProjectEntity]:
+        projects = self.db.query(ProjectModel).limit(limit).offset(skip).all()
+        return [self._model_to_entity(project) for project in projects]
+    
+    def get_projects_by_user_id(self, user_id, limit: int, skip: int):
+        projects = self.db.query(ProjectsMembersModel).filter_by(user_id=user_id, role_id=1).limit(limit).offset(skip).all()
+        return [self._model_to_entity(project.project) for project in projects]

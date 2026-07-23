@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from features.projects.domain.entities import ProjectEntity
 
 class ProjectRepositoryInterface(ABC):
-    
     @abstractmethod
     def project_exists_by_title(self, title: str) -> bool:
         pass
@@ -21,4 +20,12 @@ class ProjectRepositoryInterface(ABC):
     
     @abstractmethod
     def delete_project_with_members(self, id_project: int) -> None:
+        pass
+    
+    @abstractmethod
+    def get_all_projects(self, limit: int, skip: int) -> list[ProjectEntity]:
+        pass
+    
+    @abstractmethod
+    def get_projects_by_user_id(self, user_id: int, limit: int, skip: int) -> list[ProjectEntity]:
         pass

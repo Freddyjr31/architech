@@ -19,3 +19,12 @@ class AuthRepositoryImpl(AuthRepositoryInterface):
             created_at=user_in_db.created_at,
             updated_at=user_in_db.updated_at,
         )
+        
+    def delete_user(self, username: str) -> None:
+        
+        #* Si el usuario tiene tareas y proyectos asociados, no se puede eliminar
+        
+        user_in_db = self.db.query(UserModel).filter_by(username=username).first()
+        if not user_in_db: return None
+        self.db.delete(user_in_db)
+        self.db.commit()

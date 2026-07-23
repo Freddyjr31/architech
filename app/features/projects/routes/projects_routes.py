@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 @router.post(
-    "/create-project",
+    "/create",
     response_model=CreateProjectResponse,
     status_code=status.HTTP_201_CREATED,
     responses={401: {"model": ErrorResponse}},
@@ -70,3 +70,42 @@ def delete_Project(
     logger.info(f"Projecto eliminado con éxito: {id}")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     
+
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponse}
+    },
+)
+def get_all_Projects(
+    service: Annotated[ProjectService, Depends(get_project_service)],
+    limit: int = 5,
+    skip: int = 0
+    ):
+    """
+    - Endpoint para obtener todos los Projectos
+    """
+    return service.get_all_projects_service(limit, skip)
+
+@router.get(
+    "/user",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponse}
+    },
+)
+def get_Projects_by_user_id(
+    current_user: dependencies.CurrentUser,
+    service: Annotated[ProjectService, Depends(get_project_service)],
+    limit: int = 5,
+    skip: int = 0
+    ):
+    """
+    - Endpoint para obtener todos los Projectos de un usuario
+    """
+
+    user_id: int = current_user["user_id"]
+    return service.get_projects_by_user_id_service(user_id, limit, skip)

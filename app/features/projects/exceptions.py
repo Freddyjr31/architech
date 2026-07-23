@@ -5,7 +5,10 @@ class ProjectError(Exception):
 class ProjectNotFoundError(ProjectError):
     def __init__(self):
         super().__init__(f"Projecto no encontrado.")
-
+        
+class UserDontHaveProyects(ProjectError):
+    def __init__(self):
+        super().__init__("El usuario no tiene Projectos.")
 
 class ProjectNameTakenError(ProjectError):
     def __init__(self, title: str):

@@ -9,7 +9,8 @@ from core.logger import logger
 from features.projects.exceptions import (
     NotPermissionToDelete,
     ProjectNameTakenError,
-    ProjectNotFoundError
+    ProjectNotFoundError,
+    UserDontHaveProyects
 )
 
 
@@ -17,12 +18,11 @@ class ProjectService:
     """
     Servicios relacionados con los Projectos
     """
-    
     def __init__(self, repository: ProjectRepositoryInterface):
         self.repository = repository
         
     def create_project_service(
-        self, 
+        self,
         project_payload: CreateProjectRequest,
         owner_id: int
         ) -> ProjectEntity:
@@ -63,3 +63,22 @@ class ProjectService:
         self.repository.delete_project_with_members(id_project)
 
         logger.info(f"Projecto eliminado con éxito: {id_project}")
+        
+        
+    def get_all_projects_service(self, limit: int, skip: int) -> list[ProjectEntity]:
+        
+        if limit > 20:
+            limit = 20
+            
+        if skip < 0:
+            skip = 0
+            
+        return self.repository.get_all_projects(limit, skip)
+    
+    def get_projects_by_user_id_service(self, user_id: int, limit: int, skip: int) -> list[ProjectEntity]:
+        if limit > 20:
+                limit = 20
+                
+        if skip < 0:
+            skip = 0
+        return self.repository.get_projects_by_user_id(user_id, limit, skip)

@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 @router.post(
-    "/create-task",
+    "/create",
     response_model=CreateTaskResponse,
     status_code=status.HTTP_201_CREATED,
     responses={401: {"model": ErrorResponse}},
@@ -31,7 +31,7 @@ async def create_task(payload: CreateTaskRequest, db: Annotated[Session, Depends
 
 
 @router.delete(
-    "/delete-task/{id}",
+    "/delete/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={401: {"model": ErrorResponse}}
     # response_model=
