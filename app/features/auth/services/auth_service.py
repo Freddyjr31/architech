@@ -1,6 +1,6 @@
-from features.auth.schemas.auth_schemas import UserLoginRequest
+from features.auth.schemas.auth_schemas import ChangePasswordRequest, UserLoginRequest
 from features.auth.repository.auth_repository_interface import AuthRepositoryInterface
-from features.auth.exceptions import UserNotFoundError, InvalidCredentialsError
+from features.auth.exceptions import ErrorChangingPassword, UserNotFoundError, InvalidCredentialsError
 
 from core import security
 from core.logger import logger
@@ -31,3 +31,15 @@ class AuthService:
             username=user.username,
             user_id=user.id
         )
+        
+    def delete_user(self, user_id: int):
+        return self.auth_repository.delete_user(user_id)
+    
+    def change_user_password_service(self, id_user: int, new_password_payload: ChangePasswordRequest):
+        #* hasheo la contraseña
+        logger.info(f"Intento de cambio de contraseña para el usuario: {id_user} con la nueva contraseña: {new_password_payload.new_password}")
+        hashed_password = security.hash_password(new_password_payload.new_password)
+        result = self.auth_repository.change_user_password(id_user, hashed_password)
+        if not result:
+            logger.warning(f"Error al cambiar la contraseña del usuario: {id_user}")
+            raise ErrorChangingPassword

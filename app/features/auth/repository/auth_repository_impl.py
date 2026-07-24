@@ -28,3 +28,10 @@ class AuthRepositoryImpl(AuthRepositoryInterface):
         if not user_in_db: return None
         self.db.delete(user_in_db)
         self.db.commit()
+        
+    def change_user_password(self, user_id: int, new_password: str) ->  bool:
+        user_in_db = self.db.query(UserModel).filter_by(id=user_id).first()
+        if not user_in_db: return False
+        user_in_db.hashed_password = new_password
+        self.db.commit()
+        return True

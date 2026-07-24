@@ -11,3 +11,7 @@ class AuthRepositoryInterface(ABC):
     @abstractmethod
     def delete_user(self, username: str) -> None:
         pass
+
+    @abstractmethod
+    def change_user_password(self, user_id: int, new_password: str) -> bool:
+        pass

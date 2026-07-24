@@ -11,3 +11,6 @@ class InvalidCredentialsError(AuthError):
     def __init__(self):
         super().__init__("Credenciales inválidas. Usuario o contraseña incorrectos.")
         
+class ErrorChangingPassword(AuthError):
+    def __init__(self):
+        super().__init__("Error al cambiar la contraseña.")

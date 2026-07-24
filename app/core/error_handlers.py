@@ -16,6 +16,7 @@ from features.projects.exceptions import (
 # ── Auth ──
 from features.auth.exceptions import (
     AuthError as AuthError,
+    ErrorChangingPassword,
     UserNotFoundError,
     InvalidCredentialsError
 )
@@ -43,6 +44,10 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(InvalidCredentialsError)
     def _(request: Request, exc: InvalidCredentialsError):
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": str(exc)})
+    
+    @app.exception_handler(ErrorChangingPassword)
+    def _(request: Request, exc: ErrorChangingPassword):
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(exc)})
     
     # ──────────── Sign Up ────────────
     

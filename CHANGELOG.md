@@ -6,6 +6,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/) y [SemVer](htt
 
 ---
 
+## [1.0.10] - 2026-07-23
+
+Endpoint de cambio de contraseña en **auth**, nuevos excepction para error al cambiar contraseña, nuevo schema para Request/response de cambio de contraseña y try/except en servico de projects
+
+---
+
 ## [1.0.9] — 2026-07-22
 
 Endpoints de consulta de proyectos y corrección de bugs en repository y CORS.

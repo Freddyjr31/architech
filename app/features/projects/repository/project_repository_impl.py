@@ -73,16 +73,20 @@ class ProjectRepositoryImpl(ProjectRepositoryInterface):
             role_id=1).first() is not None
     
     def delete_project_with_members(self, id_project) -> None:
-        
-        self.db.query(ProjectsMembersModel).filter_by(
-            project_id=id_project
-        ).delete(synchronize_session=False)
+        try:
+            self.db.query(ProjectsMembersModel).filter_by(
+                project_id=id_project
+            ).delete(synchronize_session=False)
 
-        project = self.db.query(ProjectModel).filter_by(id=id_project).first()
-        if project:
-            self.db.delete(project)
+            project = self.db.query(ProjectModel).filter_by(id=id_project).first()
+            if project:
+                self.db.delete(project)
 
-        self.db.commit()
+            self.db.commit()
+            
+        except Exception as e:
+            self.db.rollback()
+            raise e
         
     def get_all_projects(self, limit: int, skip: int) -> list[ProjectEntity]:
         projects = self.db.query(ProjectModel).limit(limit).offset(skip).all()
